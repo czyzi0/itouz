@@ -48,8 +48,15 @@ def convert_wav2mel(wav):
 
 def main(input_dir, output_dir):
     output_dir.mkdir(exist_ok=True)
-    (output_dir / 'wavs').mkdir(exist_ok=True)
-    (output_dir / 'mels').mkdir(exist_ok=True)
+
+    wavs_dir = output_dir / 'wavs'
+    wavs_dir.mkdir(exist_ok=True)
+    mels_dir = output_dir / 'mels'
+    mels_dir.mkdir(exist_ok=True)
+
+    tokens = set()
+    min_frame = np.zeros(N_MELS)
+    avg_min_frame = np.mean(min_frame)
 
     lines, i = [], 0
     for dialect_dir in sorted(input_dir.glob('*')):
@@ -57,13 +64,23 @@ def main(input_dir, output_dir):
             for text_fp in sorted(speaker_dir.glob('*.TXT')):
                 # Prepare id
                 id_ = f'{dialect_dir.stem}_{speaker_dir.stem}_{text_fp.stem}'
+
                 # Load and copy wav
                 wav_fp = speaker_dir / f'{text_fp.stem}.WAV.wav'
                 wav = load_wav(wav_fp)
-                shutil.copy(wav_fp, output_dir / 'wavs' / f'{id_}.wav')
+                shutil.copy(wav_fp, wavs_dir / f'{id_}.wav')
+
                 # Extract features and save them
                 mel = convert_wav2mel(wav)
-                np.save(output_dir / 'mels' / f'{id_}.npy', mel)
+                np.save(mels_dir / f'{id_}.npy', mel)
+
+                # Update min frame
+                avg_frames = np.mean(mel, axis=0)
+                min_idx = np.argmin(avg_frames)
+                if avg_frames[min_idx] < avg_min_frame:
+                    min_frame = mel[:, min_idx]
+                    avg_min_frame = avg_frames[min_idx]
+
                 # Read phonetic transcription and prepare labels for mel frames
                 tscp, tscp_ext = [], []
                 idx = 0
@@ -75,7 +92,11 @@ def main(input_dir, output_dir):
                         while idx <= end - 0.5 * HOP_LEN:
                             tscp_ext.append(phoneme)
                             idx += HOP_LEN
+                        tokens.add(phoneme)
+                while mel.shape[1] > len(tscp_ext):
+                    tscp_ext.append(tscp_ext[-1])
                 tscp, tscp_ext = ' '.join(tscp), ' '.join(tscp_ext)
+
                 # Read text
                 with open(text_fp, 'r') as fh:
                     text = ' '.join(fh.read().split()[2:])
@@ -91,6 +112,16 @@ def main(input_dir, output_dir):
         for line in lines:
             fh.write(f'{line}\n')
     print(f'Saved metadata to {metadata_fp}')
+
+    tokens = list(sorted(tokens))
+    tokens_fp = output_dir / 'tokens.txt'
+    with open(tokens_fp, 'w') as fh:
+        fh.write(f'{tokens}\n')
+    print(f'Saved tokens to {tokens_fp}')
+
+    min_frame_fp = output_dir / 'min_frame.npy'
+    np.save(min_frame_fp, min_frame)
+    print(f'Saved min frame to {min_frame_fp}')
 
 
 if __name__ == '__main__':
