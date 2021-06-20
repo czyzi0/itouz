@@ -7,20 +7,24 @@ class Model:
         self.layers = layers
         self.loss = loss
 
+    def __str__(self):
+
+
     def predict(self, x):
         for layer in self.layers:
             x = layer.forward(x)
         return x
 
     def train(self, x_train, y_train, x_val, y_val, lr, momentum, epochs):
-        loss = None
+        loss = 0.0
         for epoch in range(epochs):
-            print(f'Epoch: {epoch}')
+            print(f'Epoch: {epoch} - ', end='')
             for x_batch, y_batch in zip(x_train, y_train):
-                loss_ = self._run_batch(x_batch, y_batch, lr, momentum)
-                loss = loss_ if loss is None else 0.5 * loss_ + 0.5 * loss
-                print(f'\rLoss: {loss}', end='')
-            print()
+                loss += self._run_batch(x_batch, y_batch, lr, momentum)
+            loss = loss / len(x_train)
+            print(f'Loss: {loss:.5f}')
+            loss = 0.0
+
 
     def _run_batch(self, x_train, y_train, lr, momentum):
         # Forward pass
@@ -40,6 +44,10 @@ class Model:
 
         return loss
 
+
+##############################################################################
+# LAYERS
+##############################################################################
 
 class Linear:
 
@@ -67,7 +75,7 @@ class Linear:
         else:
             raise NotImplementedError
 
-        db = np.mean(grad, axis=tuple(range(grad.ndim -1)))
+        db = np.mean(grad, axis=tuple(range(grad.ndim - 1)))
         grad = np.dot(grad, self.W)
 
         return grad, (dW, db)
@@ -90,24 +98,97 @@ class Linear:
 
 class RNN:
 
-    def __init__(self):
-        pass
+    def __init__(self, in_dim, out_dim):
+        self.Wx = np.random.rand(out_dim, in_dim) * np.sqrt(1 / (in_dim + out_dim))
+        self.Wh = np.random.rand(out_dim, out_dim) * np.sqrt(1 / (out_dim + out_dim))
+        self.b = np.random.rand(out_dim) * np.sqrt(1 / out_dim)
+
+        self._out_dim = out_dim
+
+        self._prev_dWx = np.zeros_like(self.Wx)
+        self._prev_dWh = np.zeros_like(self.Wh)
+        self._prev_db = np.zeros_like(self.b)
 
     def __str__(self):
-        return f'RNN            todo'
+        return f'RNN       {self.n_params(): <12}'
 
     def forward(self, x):
-        pass
+        self._prev_x = x
+
+        batch_size, seq_len, _ = x.shape
+
+        self._prev_output = [np.zeros((batch_size, self._out_dim))]
+        for i in range(seq_len):
+            # Find hidden state from previous timestep
+            prev_h = self._prev_output[-1]
+            # Forward pass through single cell, TODO: Add tanh
+            self._prev_output.append(np.tanh(
+                np.dot(x[:,i,:], self.Wx.T) + np.dot(prev_h, self.Wh.T) + self.b))
+
+        self._prev_output = np.stack(self._prev_output, axis=1)
+        return self._prev_output[:,1:,:]
 
     def backward(self, grad):
-        pass
+        batch_size, seq_len, _ = grad.shape
 
-    def optimize(self):
-        pass
+        dWx = np.zeros_like(self.Wx)
+        dWh = np.zeros_like(self.Wh)
+        db = np.zeros_like(self.b)
+
+        # Gradients with regard to the input
+        grad_x = []
+        # Output gradient from previous step (no previous step)
+        grad_h = np.zeros((batch_size, self._out_dim))
+
+        for i in reversed(range(seq_len)):
+            # Add gradient from output
+            grad_h = grad_h + grad[:,i,:]
+
+            # Backpropagate through tanh
+            grad_tanh = grad_h * (1 - self._prev_output[:,i+1,:]**2)
+
+            # Gradients for parameters
+            dWx = dWx + np.dot(self._prev_x[:,i,:].T, grad_tanh).T
+            dWh = dWh + np.dot(self._prev_output[:,i,:].T, grad_tanh).T
+            db = db + np.mean(grad_tanh, axis=0)
+
+            # Calculate gradient with regard to the input
+            grad_x.append(np.dot(grad_tanh, self.Wx))
+            # Calculate gradient for next step
+            grad_h = np.dot(grad_tanh, self.Wh)
+
+        # Normalize parameter gradients
+        dWx = dWx / seq_len
+        sWh = dWh / seq_len
+        db = db / seq_len
+
+        # Prepare gradient with regard to the input
+        grad_x = np.stack(list(reversed(grad_x)), axis=1)
+
+        return grad_x, (dWx, dWh, db)
+
+    def optimize(self, deltas, lr, momentum):
+        dWx, dWh, db = deltas
+
+        dWx = lr * dWx + momentum * self._prev_dWx
+        dWh = lr * dWh + momentum * self._prev_dWh
+        db = lr * db + momentum * self._prev_db
+
+        self.Wx = self.Wx - dWx
+        self.Wh = self.Wh - dWh
+        self.b = self.b - db
+
+        self._prev_dWx = dWx
+        self._prev_dWh = dWh
+        self._prev_db = db
 
     def n_params(self):
-        pass
+        return np.prod(self.Wx.shape) + np.prod(self.Wh.shape) + np.prod(self.b.shape)
 
+
+##############################################################################
+# ACTIVATIONS
+##############################################################################
 
 class ReLU:
 
@@ -155,6 +236,10 @@ class Softmax:
     def n_params(self):
         return 0
 
+
+##############################################################################
+# LOSSES
+##############################################################################
 
 class MSELoss:
 
