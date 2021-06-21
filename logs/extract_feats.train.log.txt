@@ -1,0 +1,13 @@
+Prepared 500 files
+Prepared 1000 files
+Prepared 1500 files
+Prepared 2000 files
+Prepared 2500 files
+Prepared 3000 files
+Prepared 3500 files
+Prepared 4000 files
+Prepared 4500 files
+Prepared 4620 files
+Saved metadata to data/train/metadata.tsv
+Saved tokens to data/train/tokens.txt
+Saved min frame to data/train/min_frame.npy

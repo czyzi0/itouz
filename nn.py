@@ -1,14 +1,33 @@
+import time
+
 import numpy as np
+
+from utils import my_print
 
 
 class Model:
 
-    def __init__(self, layers, loss):
+    def __init__(self, layers, loss, train_metrics, val_metrics):
         self.layers = layers
         self.loss = loss
+        self.train_metrics = train_metrics
+        self.val_metrics = val_metrics
 
     def __str__(self):
+        str_ = (
+            f'----------------Model----------------\n'
+            f'layer                   # of params  \n'
+            f'-------------------------------------\n')
 
+        for layer in self.layers:
+            str_ += f'{layer}\n'
+        str_ += f'{self.loss}\n'
+
+        str_ += (
+            f'-------------------------------------\n'
+            f'TOTAL                   {self.n_params()}\n')
+
+        return str_
 
     def predict(self, x):
         for layer in self.layers:
@@ -17,32 +36,97 @@ class Model:
 
     def train(self, x_train, y_train, x_val, y_val, lr, momentum, epochs):
         loss = 0.0
-        for epoch in range(epochs):
-            print(f'Epoch: {epoch} - ', end='')
-            for x_batch, y_batch in zip(x_train, y_train):
-                loss += self._run_batch(x_batch, y_batch, lr, momentum)
+        for epoch in range(1, epochs + 1):
+            start = time.time()
+            my_print(f'Epoch: {epoch}', end='', flush=True)
+
+            # Training
+            for x, y_true in zip(x_train, y_train):
+                loss_, y_pred = self._run_batch(x, y_true, lr=lr, momentum=momentum)
+                loss += loss_
+                for metric in self.train_metrics:
+                    metric.log(y_true, y_pred)
             loss = loss / len(x_train)
-            print(f'Loss: {loss:.5f}')
+            my_print(f' - Loss: {loss:.5f}', end='')
             loss = 0.0
 
+            for metric in self.train_metrics:
+                my_print(f' - {metric}: {metric.calc():.4f}', end='')
 
-    def _run_batch(self, x_train, y_train, lr, momentum):
+            # Validation
+            for x, y_true in zip(x_val, y_val):
+                loss_, y_pred = self._run_batch(x, y_true, optimize=False)
+                loss += loss_
+                for metric in self.val_metrics:
+                    metric.log(y_true, y_pred)
+            loss = loss / len(x_val)
+            my_print(f' - ValLoss: {loss:.5f}', end='')
+            loss = 0.0
+
+            for metric in self.val_metrics:
+                my_print(f' - Val{metric}: {metric.calc():.4f}', end='')
+
+            # Shuffle the training data
+            data = list(zip(x_train, y_train))
+            np.random.shuffle(data)
+            x_train, y_train = zip(*data)
+
+            minutes, seconds = divmod(time.time() - start, 60)
+            my_print(f' - Duration: {int(minutes)}m {int(seconds)}s', end='')
+
+            my_print()
+
+    def _run_batch(self, x, y, lr=None, momentum=None, optimize=True):
         # Forward pass
-        x = x_train
         for layer in self.layers:
             x = layer.forward(x)
-        y = x
+        # Compute loss
+        loss = self.loss.forward(x, y)
 
-        # Compute loss and first gradient
-        loss = self.loss.forward(y, y_train)
+        if not optimize:
+            return loss, x
+
+        # Compute first gradient
         grad = self.loss.backward()
-
         # Backpropagation
         for layer in reversed(self.layers):
             grad, deltas = layer.backward(grad)
             layer.optimize(deltas, lr, momentum)
 
-        return loss
+        return loss, x
+
+    def n_params(self):
+        return sum(l.n_params() for l in self.layers)
+
+
+##############################################################################
+# METRICS
+##############################################################################
+
+class Accuracy:
+
+    def __init__(self):
+        self._n_correct = 0
+        self._n_total = 0
+
+    def __str__(self):
+        return 'Accuracy'
+
+    def log(self, y_true, y_pred):
+        y_true = y_true.reshape(-1, y_true.shape[-1])
+        y_pred = y_pred.reshape(-1, y_pred.shape[-1])
+
+        y_true = np.argmax(y_true, axis=1)
+        y_pred = np.argmax(y_pred, axis=1)
+
+        self._n_correct += np.sum(y_true == y_pred)
+        self._n_total += y_true.shape[0]
+
+    def calc(self):
+        acc = self._n_correct / self._n_total
+        self._n_correct = 0
+        self._n_total = 0
+        return acc 
 
 
 ##############################################################################
@@ -55,11 +139,15 @@ class Linear:
         self.W = np.random.rand(out_dim, in_dim)
         self.b = np.random.rand(out_dim)
 
+        self._in_dim = in_dim
+        self._out_dim = out_dim
+
         self._prev_dW = np.zeros_like(self.W)
         self._prev_db = np.zeros_like(self.b)
 
     def __str__(self):
-        return f'Linear        {self.n_params(): <12}'
+        layer = f'Linear({self._in_dim}, {self._out_dim})'
+        return f'{layer: <24}{self.n_params()}'
 
     def forward(self, x):
         self._prev_x = x
@@ -103,6 +191,7 @@ class RNN:
         self.Wh = np.random.rand(out_dim, out_dim) * np.sqrt(1 / (out_dim + out_dim))
         self.b = np.random.rand(out_dim) * np.sqrt(1 / out_dim)
 
+        self._in_dim = in_dim
         self._out_dim = out_dim
 
         self._prev_dWx = np.zeros_like(self.Wx)
@@ -110,7 +199,8 @@ class RNN:
         self._prev_db = np.zeros_like(self.b)
 
     def __str__(self):
-        return f'RNN       {self.n_params(): <12}'
+        layer = f'RNN({self._in_dim}, {self._out_dim})'
+        return f'{layer: <24}{self.n_params()}'
 
     def forward(self, x):
         self._prev_x = x
@@ -121,7 +211,7 @@ class RNN:
         for i in range(seq_len):
             # Find hidden state from previous timestep
             prev_h = self._prev_output[-1]
-            # Forward pass through single cell, TODO: Add tanh
+            # Forward pass through single cell
             self._prev_output.append(np.tanh(
                 np.dot(x[:,i,:], self.Wx.T) + np.dot(prev_h, self.Wh.T) + self.b))
 
@@ -150,7 +240,7 @@ class RNN:
             # Gradients for parameters
             dWx = dWx + np.dot(self._prev_x[:,i,:].T, grad_tanh).T
             dWh = dWh + np.dot(self._prev_output[:,i,:].T, grad_tanh).T
-            db = db + np.mean(grad_tanh, axis=0)
+            db = db + np.sum(grad_tanh, axis=0)
 
             # Calculate gradient with regard to the input
             grad_x.append(np.dot(grad_tanh, self.Wx))
@@ -158,9 +248,9 @@ class RNN:
             grad_h = np.dot(grad_tanh, self.Wh)
 
         # Normalize parameter gradients
-        dWx = dWx / seq_len
-        sWh = dWh / seq_len
-        db = db / seq_len
+        #dWx = dWx / seq_len
+        #sWh = dWh / seq_len
+        #db = db / seq_len
 
         # Prepare gradient with regard to the input
         grad_x = np.stack(list(reversed(grad_x)), axis=1)
@@ -196,7 +286,7 @@ class ReLU:
         pass
 
     def __str__(self):
-        return f'ReLU     {self.n_params(): <12}'
+        return f'ReLU()                  {self.n_params()}'
 
     def forward(self, x):
         self._prev_x = np.copy(x)
@@ -219,7 +309,7 @@ class Softmax:
         pass
 
     def __str__(self):
-        return f'Softmax      {self.n_params(): <12}'
+        return f'Softmax()               {self.n_params()}'
 
     def forward(self, x):
         e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
@@ -247,7 +337,7 @@ class MSELoss:
         pass
 
     def __str__(self):
-        return 'MSELoss'
+        return 'MSELoss()'
 
     def forward(self, input_, target):
         self._prev_input = input_
@@ -264,12 +354,14 @@ class CrossEntropyLoss:
         pass
 
     def __str__(self):
-        return 'CrossEntropyLoss'
+        return 'CrossEntropyLoss()'
 
     def forward(self, input_, target):
         self._prev_input = np.clip(input_, 1e-8, None)
         self._prev_target = target
-        return np.mean(np.where(target == 1, -np.log(self._prev_input), 0))
+        return (
+            np.sum(np.where(target == 1, -np.log(self._prev_input), 0))
+            / np.prod(input_.shape[:-1]))
 
     def backward(self):
         return np.where(self._prev_target == 1, -1 / self._prev_input, 0)

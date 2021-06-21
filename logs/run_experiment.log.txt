@@ -1,0 +1,30 @@
+Preparing data...DONE
+Training - Batches: 198 - Samples: 4158
+Validation - Batches: 22 - Samples: 462
+Testing - Batches: 1680 - Samples: 1680
+
+Preparing model...DONE
+----------------Model----------------
+layer                   # of params  
+-------------------------------------
+RNN(80, 128)            26752
+Linear(128, 61)         7869
+Softmax()               0
+CrossEntropyLoss()
+-------------------------------------
+TOTAL                   34621
+
+
+Started training:
+Epoch: 1 - Loss: 2.88811 - Accuracy: 0.3143 - ValLoss: 2.42698 - ValAccuracy: 0.3694 - Duration: 0m 10s
+Epoch: 2 - Loss: 2.42655 - Accuracy: 0.3524 - ValLoss: 2.28134 - ValAccuracy: 0.3911 - Duration: 0m 10s
+Epoch: 3 - Loss: 2.34241 - Accuracy: 0.3622 - ValLoss: 2.23583 - ValAccuracy: 0.3990 - Duration: 0m 10s
+Epoch: 4 - Loss: 2.30052 - Accuracy: 0.3695 - ValLoss: 2.18459 - ValAccuracy: 0.4098 - Duration: 0m 10s
+Epoch: 5 - Loss: 2.26509 - Accuracy: 0.3766 - ValLoss: 2.21212 - ValAccuracy: 0.4104 - Duration: 0m 10s
+Epoch: 6 - Loss: 2.25809 - Accuracy: 0.3758 - ValLoss: 2.18577 - ValAccuracy: 0.4051 - Duration: 0m 10s
+Epoch: 7 - Loss: 2.23724 - Accuracy: 0.3797 - ValLoss: 2.23450 - ValAccuracy: 0.3962 - Duration: 0m 10s
+Epoch: 8 - Loss: 2.24722 - Accuracy: 0.3777 - ValLoss: 2.17913 - ValAccuracy: 0.4093 - Duration: 0m 10s
+Epoch: 9 - Loss: 2.22453 - Accuracy: 0.3825 - ValLoss: 2.17350 - ValAccuracy: 0.4097 - Duration: 0m 10s
+Epoch: 10 - Loss: 2.23606 - Accuracy: 0.3809 - ValLoss: 2.15304 - ValAccuracy: 0.4137 - Duration: 0m 10s
+
+Testing: - Accuracy: 0.3733

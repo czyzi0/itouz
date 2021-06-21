@@ -6,13 +6,15 @@ import librosa
 import numpy as np
 from scipy.io.wavfile import read
 
+from utils import init_logging, close_logging, my_print
+
 
 SAMPLING_RATE = 16000
 MAX_WAV_VALUE = 32678
 N_MELS = 80
 
 FILTER_LEN = 1024
-HOP_LEN = 160
+HOP_LEN = 480
 WIN_LEN = 1024
 
 MEL_FMIN = 0.0
@@ -43,6 +45,7 @@ def convert_wav2mel(wav):
         fmin=MEL_FMIN, fmax=MEL_FMAX)
     mel = np.clip(mel, 1e-5, None)
     mel = np.log(mel)
+    mel += 5
     return mel
 
 
@@ -104,26 +107,29 @@ def main(input_dir, output_dir):
                 i += 1
                 lines.append(f'{id_}\t{text}\t{tscp}\t{tscp_ext}\t{mel.shape[1]}')
 
-                print(f'\rPrepared {i} files', end='')
-    print()
+                if i % 500 == 0:
+                    my_print(f'Prepared {i} files')
+    my_print(f'Prepared {i} files')
 
     metadata_fp = output_dir / 'metadata.tsv'
     with open(metadata_fp, 'w') as fh:
         for line in lines:
             fh.write(f'{line}\n')
-    print(f'Saved metadata to {metadata_fp}')
+    my_print(f'Saved metadata to {metadata_fp}')
 
     tokens = list(sorted(tokens))
     tokens_fp = output_dir / 'tokens.txt'
     with open(tokens_fp, 'w') as fh:
         fh.write(f'{tokens}\n')
-    print(f'Saved tokens to {tokens_fp}')
+    my_print(f'Saved tokens to {tokens_fp}')
 
     min_frame_fp = output_dir / 'min_frame.npy'
     np.save(min_frame_fp, min_frame)
-    print(f'Saved min frame to {min_frame_fp}')
+    my_print(f'Saved min frame to {min_frame_fp}')
 
 
 if __name__ == '__main__':
+    init_logging('extract_feats.log.txt')
     args = parse_args()
     main(args.input, args.output)
+    close_logging()

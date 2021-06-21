@@ -1,0 +1,7 @@
+Prepared 500 files
+Prepared 1000 files
+Prepared 1500 files
+Prepared 1680 files
+Saved metadata to data/test/metadata.tsv
+Saved tokens to data/test/tokens.txt
+Saved min frame to data/test/min_frame.npy
