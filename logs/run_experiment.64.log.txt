@@ -41,5 +41,12 @@ Epoch: 22 - Loss: 2.17019 - Accuracy: 0.4116 - ValLoss: 2.08868 - ValAccuracy: 0
 Epoch: 23 - Loss: 2.24673 - Accuracy: 0.3947 - ValLoss: 2.10169 - ValAccuracy: 0.4387 - Duration: 0m 6s
 Epoch: 24 - Loss: 2.15967 - Accuracy: 0.4115 - ValLoss: 2.07378 - ValAccuracy: 0.4432 - Duration: 0m 6s
 Epoch: 25 - Loss: 2.12603 - Accuracy: 0.4179 - ValLoss: 2.03588 - ValAccuracy: 0.4524 - Duration: 0m 6s
+Epoch: 26 - Loss: 2.10130 - Accuracy: 0.4239 - ValLoss: 2.05752 - ValAccuracy: 0.4450 - Duration: 0m 6s
+Epoch: 27 - Loss: 2.08509 - Accuracy: 0.4264 - ValLoss: 2.02792 - ValAccuracy: 0.4550 - Duration: 0m 6s
+Epoch: 28 - Loss: 2.08157 - Accuracy: 0.4267 - ValLoss: 2.02883 - ValAccuracy: 0.4496 - Duration: 0m 6s
+Epoch: 29 - Loss: 2.07623 - Accuracy: 0.4276 - ValLoss: 1.98371 - ValAccuracy: 0.4633 - Duration: 0m 6s
+Epoch: 30 - Loss: 2.05877 - Accuracy: 0.4317 - ValLoss: 1.99254 - ValAccuracy: 0.4595 - Duration: 0m 6s
+Epoch: 31 - Loss: 2.05228 - Accuracy: 0.4330 - ValLoss: 2.01159 - ValAccuracy: 0.4546 - Duration: 0m 6s
+Epoch: 32 - Loss: 2.04644 - Accuracy: 0.4335 - ValLoss: 2.00501 - ValAccuracy: 0.4545 - Duration: 0m 6s
 
-Testing: - Accuracy: 0.4106
+Testing: - Accuracy: 0.4140
