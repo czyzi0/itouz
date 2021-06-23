@@ -43,7 +43,7 @@ python run_experiment.py --train data/train/ --test data/test/ --rnn_size 128 --
 ```
 lub za pomocą pliku wykonywalnego `run_experiment.exe` o takich samych parametrach wywołania.
 
-UWAGA: Ze względu na rozmiar plików binarnych i ograniczenie całości projektu do 20MB, całość projektu można pobrać z publicznego repozytorium https://github.com/czyzi0/itouz
+UWAGA: Ze względu na rozmiar plików binarnych i ograniczenie całości projektu do 20MB, całość projektu można pobrać z publicznego repozytorium https://github.com/czyzi0/itouz lub alternatywnie z https://drive.google.com/file/d/1hS_nB6TA9OsNiBqf4xZ8O92ajiRWhQre/view?usp=sharing
 
 ## Uruchamianie z plików binarnych
 
