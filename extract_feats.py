@@ -1,3 +1,8 @@
+"""
+Script for extracting features and labels from TIMIT dataset in the state
+downloaded from https://deepai.org/dataset/timit
+"""
+
 import argparse
 import pathlib
 import shutil
@@ -9,6 +14,7 @@ from scipy.io.wavfile import read
 from utils import init_logging, close_logging, my_print
 
 
+# Paremeters for acoustic features extraction
 SAMPLING_RATE = 16000
 MAX_WAV_VALUE = 32678
 N_MELS = 80
@@ -22,15 +28,30 @@ MEL_FMAX = 8000.0
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='')
+    """Function for parsing arguments for the script"""
+    parser = argparse.ArgumentParser(
+        description='Extract features and prepare data for further processing')
 
-    parser.add_argument('--input', type=pathlib.Path, required=True, help='')
-    parser.add_argument('--output', type=pathlib.Path, required=True, help='')
+    parser.add_argument(
+        '--input', type=pathlib.Path, required=True,
+        help='directory with data for feature extraction, as unzipped from https://deepai.org/dataset/timit')
+    parser.add_argument(
+        '--output', type=pathlib.Path, required=True,
+        help='directory where features will be saved')
 
     return parser.parse_args()
 
 
 def load_wav(fp):
+    """Function for loading wav file.
+
+    Args:
+        fp (pathlib.Path): Wav file path.
+
+    Returns:
+        np.array: Wav in the form of numpy array, normalized to (-1, 1).
+
+    """
     sr, wav = read(str(fp))
     assert sr == SAMPLING_RATE
     wav = np.clip(wav / MAX_WAV_VALUE, -1, 1)
@@ -38,6 +59,17 @@ def load_wav(fp):
 
 
 def convert_wav2mel(wav):
+    """Function for converting wav file to acoustic features (mel-spectrogram)
+
+    Args:
+        wav (np.array): Signal in the form of numy array, as loaded by
+            `load_wav` function.
+
+    Returns:
+        np.array: Extracted normalized acoustic features in the form of numpy
+            array with shape (n_feats, seq_len).
+
+    """
     spectrogram = librosa.stft(y=wav, n_fft=FILTER_LEN, hop_length=HOP_LEN, win_length=WIN_LEN)
     spectrogram = np.abs(spectrogram)
     mel = librosa.feature.melspectrogram(
@@ -45,11 +77,12 @@ def convert_wav2mel(wav):
         fmin=MEL_FMIN, fmax=MEL_FMAX)
     mel = np.clip(mel, 1e-5, None)
     mel = np.log(mel)
-    mel += 5
+    mel += 5  # Normalize to so the distribution is more around 0
     return mel
 
 
 def main(input_dir, output_dir):
+    """Main function of the script that does the extraction."""
     output_dir.mkdir(exist_ok=True)
 
     wavs_dir = output_dir / 'wavs'

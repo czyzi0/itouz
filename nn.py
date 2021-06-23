@@ -1,3 +1,5 @@
+"""Module with simple neural network library implemented for the project."""
+
 import time
 
 import numpy as np
@@ -6,6 +8,18 @@ from utils import my_print
 
 
 class Model:
+    """Class that represents neural network and handles all high level
+    operations on it.
+
+    Args:
+        layers (List[_layer_]): List of layers to use in the network.
+        loss (_loss_): Loss to use in the neural network training.
+        train_metrics (List[_metric_]): List of metrics to evaluate training
+            set on during the training.
+        val_metrics (List[_metrics_]): List of metrics to evaluate validation
+            set on during the training.
+
+    """
 
     def __init__(self, layers, loss, train_metrics, val_metrics):
         self.layers = layers
@@ -30,11 +44,37 @@ class Model:
         return str_
 
     def predict(self, x):
+        """Pass data through the network and do the prediction.
+
+        Args:
+            x (np.array): Data in the form of numpy array in the shape defined
+                by used layers.
+
+        Returns:
+            np.array: Prediction with the shape defined by used layers.
+
+        """
         for layer in self.layers:
             x = layer.forward(x)
         return x
 
     def train(self, x_train, y_train, x_val, y_val, lr, momentum, epochs):
+        """Train the neural network.
+
+        Args:
+            x_train (List[np.array]): Training data inputs in the form of list
+                of batches with shape defined by used layers.
+            y_train (List[np.array]): Training data targets in the form of list
+                of batches with shape defined by used layers.
+            x_val (List[np.array]): Validation data inputs in the form of list
+                of batches with shape defined by used layers.
+            y_val (List[np.array]): Validation data targets in the form of list
+                of batches with shape defined by used layers.
+            lr (float): Learning rate.
+            momentum (float): Momentum.
+            epochs (int): Number of epochs to train the model for.
+
+        """
         loss = 0.0
         for epoch in range(1, epochs + 1):
             start = time.time()
@@ -77,6 +117,7 @@ class Model:
             my_print()
 
     def _run_batch(self, x, y, lr=None, momentum=None, optimize=True):
+        """Private method that runs the training on the single batch."""
         # Forward pass
         for layer in self.layers:
             x = layer.forward(x)
@@ -96,6 +137,7 @@ class Model:
         return loss, x
 
     def n_params(self):
+        """Get total number of parameters in the neural network."""
         return sum(l.n_params() for l in self.layers)
 
 
@@ -104,6 +146,7 @@ class Model:
 ##############################################################################
 
 class Accuracy:
+    """Accuracy metric."""
 
     def __init__(self):
         self._n_correct = 0
@@ -113,6 +156,17 @@ class Accuracy:
         return 'Accuracy'
 
     def log(self, y_true, y_pred):
+        """Log single batch of results.
+
+        Args:
+            y_true (np.array): Targets in the form of the numpy array with one
+                of two shapes: (batch_size, seq_len, n_classes) or
+                (batch_size, n_classes).
+            y_pred (np.array): Predictions in the form of the numpy array with
+                one of two shapes: (batch_size, seq_len, n_classes) or
+                (batch_size, n_classes).
+
+        """
         y_true = y_true.reshape(-1, y_true.shape[-1])
         y_pred = y_pred.reshape(-1, y_pred.shape[-1])
 
@@ -123,6 +177,12 @@ class Accuracy:
         self._n_total += y_true.shape[0]
 
     def calc(self):
+        """Calculate the metric for all logged values and reset state.
+
+        Returns:
+            float: Total accuracy for all logged results.
+
+        """
         acc = self._n_correct / self._n_total
         self._n_correct = 0
         self._n_total = 0
@@ -134,6 +194,13 @@ class Accuracy:
 ##############################################################################
 
 class Linear:
+    """Linear (fully-connected) layer implementation.
+
+    Args:
+        in_dim (int): Size of the input.
+        out_dim (int): Size of the output.
+
+    """
 
     def __init__(self, in_dim, out_dim):
         self.W = np.random.rand(out_dim, in_dim)
@@ -150,10 +217,35 @@ class Linear:
         return f'{layer: <24}{self.n_params()}'
 
     def forward(self, x):
+        """Forward pass
+
+        Args:
+            x (np.array): Input data in the form of numpy array with one of
+                two shapes (batch_size, in_dim) or
+                (batch_size, seq_len, in_dim).
+
+        Returns:
+            np.array: Output in the form of numpy array with one of two shapes,
+                depending on the input (batch_size, out_dim) or
+                (batch_size, seq_len, out_dim).
+
+        """
         self._prev_x = x
         return np.dot(x, self.W.T) + self.b
 
     def backward(self, grad):
+        """Backward pass
+
+        Args:
+            grad (np,array): Gradients with regard to layer's output. With
+                shape (batch_size, out_dim) or (batch_size, seq_len, out_dim).
+
+        Returns:
+            Tuple[np.array, Tuple[np.array, np.array]]: Gradients with regard
+                to the layer's input with proper shape, and gradients with
+                regard to the layer's parameters.
+
+        """
         # Calculate dW
         if grad.ndim == 2:
             dW = np.dot(self._prev_x.T, grad).T
@@ -169,6 +261,15 @@ class Linear:
         return grad, (dW, db)
 
     def optimize(self, deltas, lr, momentum):
+        """Update layer's parameters.
+
+        Args:
+            deltas: Gradients with regard to the parameters as returned by
+                `backward` method.
+            lr (float): Learning rate.
+            momentum (flaot): Momentum.
+
+        """
         dW, db = deltas
 
         dW = lr * dW + momentum * self._prev_dW
@@ -181,10 +282,18 @@ class Linear:
         self._prev_db = db
 
     def n_params(self):
+        """Get number of parameters in the layer."""
         return np.prod(self.W.shape) + np.prod(self.b.shape)
 
 
 class RNN:
+    """Standard recurrent layer implementation.
+
+    Args:
+        in_dim (int): Size of the input.
+        out_dim (int): Size of the output.
+
+    """
 
     def __init__(self, in_dim, out_dim):
         self.Wx = np.random.rand(out_dim, in_dim) * np.sqrt(1 / (in_dim + out_dim))
@@ -203,6 +312,17 @@ class RNN:
         return f'{layer: <24}{self.n_params()}'
 
     def forward(self, x):
+        """Forward pass
+
+        Args:
+            x (np.array): Input data in the form of numpy array with shape
+                (batch_size, seq_len, in_dim).
+
+        Returns:
+            np.array: Output in the form of numpy array with shape (batch_size,
+                seq_len, out_dim).
+
+        """
         self._prev_x = x
 
         batch_size, seq_len, _ = x.shape
@@ -219,6 +339,18 @@ class RNN:
         return self._prev_output[:,1:,:]
 
     def backward(self, grad):
+        """Backward pass
+
+        Args:
+            grad (np,array): Gradients with regard to layer's output. With
+                shape (batch_size, seq_len, out_dim).
+
+        Returns:
+            Tuple[np.array, Tuple[np.array, np.array, np.array]]: Gradients
+                with regard to the layer's input with proper shape, and
+                gradients with regard to the layer's parameters.
+
+        """
         batch_size, seq_len, _ = grad.shape
 
         dWx = np.zeros_like(self.Wx)
@@ -258,6 +390,15 @@ class RNN:
         return grad_x, (dWx, dWh, db)
 
     def optimize(self, deltas, lr, momentum):
+        """Update layer's parameters.
+
+        Args:
+            deltas: Gradients with regard to the parameters as returned by
+                `backward` method.
+            lr (float): Learning rate.
+            momentum (flaot): Momentum.
+
+        """
         dWx, dWh, db = deltas
 
         dWx = lr * dWx + momentum * self._prev_dWx
@@ -273,6 +414,7 @@ class RNN:
         self._prev_db = db
 
     def n_params(self):
+        """Get number of parameters in the layer."""
         return np.prod(self.Wx.shape) + np.prod(self.Wh.shape) + np.prod(self.b.shape)
 
 
@@ -281,6 +423,7 @@ class RNN:
 ##############################################################################
 
 class ReLU:
+    """ReLU activation function implementation."""
 
     def __init__(self):
         pass
@@ -289,21 +432,47 @@ class ReLU:
         return f'ReLU()                  {self.n_params()}'
 
     def forward(self, x):
+        """Forward pass
+
+        Args:
+            x (np.array): Input data in the form of numpy array with one of
+                two shapes (batch_size, dim) or (batch_size, seq_len, dim).
+
+        Returns:
+            np.array: Output in the form of numpy array with one of two shapes,
+                depending on the input (batch_size, dim) or
+                (batch_size, seq_len, dim).
+
+        """
         self._prev_x = np.copy(x)
         return np.clip(x, 0, None)
 
     def backward(self, grad):
+        """Backward pass
+
+        Args:
+            grad (np,array): Gradients with regard to layer's output. With
+                shape (batch_size, dim) or (batch_size, seq_len, dim).
+
+        Returns:
+            Tuple[np.array, Tuple[]]: Gradients with regard to the layer's
+                input with proper shape, and empty tuple for compatibilty.
+
+        """
         grad = np.where(self._prev_x > 0, grad, 0)
         return grad, tuple()
 
     def optimize(self, deltas, lr, momentum):
+        """Stub for layer without parameters."""
         pass
 
     def n_params(self):
+        """Get number of parameters in the layer."""
         return 0
 
 
 class Softmax:
+    """Softmax activation function implementation."""
 
     def __init__(self):
         pass
@@ -312,18 +481,43 @@ class Softmax:
         return f'Softmax()               {self.n_params()}'
 
     def forward(self, x):
+        """Forward pass
+
+        Args:
+            x (np.array): Input data in the form of numpy array with one of
+                two shapes (batch_size, dim) or (batch_size, seq_len, dim).
+
+        Returns:
+            np.array: Output in the form of numpy array with one of two shapes,
+                depending on the input (batch_size, dim) or
+                (batch_size, seq_len, dim).
+
+        """
         e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
         self._prev_output = e_x / np.sum(e_x, axis=-1, keepdims=True)
         return self._prev_output
 
     def backward(self, grad):
+        """Backward pass
+
+        Args:
+            grad (np,array): Gradients with regard to layer's output. With
+                shape (batch_size, dim) or (batch_size, seq_len, dim).
+
+        Returns:
+            Tuple[np.array, Tuple[]]: Gradients with regard to the layer's
+                input with proper shape, and empty tuple for compatibilty.
+
+        """
         grad = self._prev_output * (grad - np.sum(grad * self._prev_output, axis=-1, keepdims=True))
         return grad, tuple()
 
     def optimize(self, deltas, lr, momentum):
+        """Stub for layer without parameters."""
         pass
 
     def n_params(self):
+        """Get number of parameters in the layer."""
         return 0
 
 
@@ -332,6 +526,7 @@ class Softmax:
 ##############################################################################
 
 class MSELoss:
+    """Mean squared error loss implementation."""
 
     def __init__(self):
         pass
@@ -340,15 +535,29 @@ class MSELoss:
         return 'MSELoss()'
 
     def forward(self, input_, target):
+        """Forward pass
+
+        Args:
+            input_ (np.array): Predictions in the form of numpy array with one
+                of two shapes (batch_size, dim) or (batch_size, seq_len, dim).
+            target (np.array): Targets in the form of numpy array with shapes
+                corresponding to `input_`.
+
+        Returns:
+            float: Calculated loss.
+
+        """
         self._prev_input = input_
         self._prev_target = target
         return np.mean(np.power(input_ - target, 2))
 
     def backward(self):
+        """Calculate gradient from last forward pass."""
         return 2 * (self._prev_input - self._prev_target)
 
 
 class CrossEntropyLoss:
+    """Cross entropy loss implementation."""
 
     def __init__(self):
         pass
@@ -357,6 +566,18 @@ class CrossEntropyLoss:
         return 'CrossEntropyLoss()'
 
     def forward(self, input_, target):
+        """Forward pass
+
+        Args:
+            input_ (np.array): Predictions in the form of numpy array with one
+                of two shapes (batch_size, dim) or (batch_size, seq_len, dim).
+            target (np.array): Targets in the form of numpy array with shapes
+                corresponding to `input_`.
+
+        Returns:
+            float: Calculated loss.
+
+        """
         self._prev_input = np.clip(input_, 1e-8, None)
         self._prev_target = target
         return (
@@ -364,4 +585,5 @@ class CrossEntropyLoss:
             / np.prod(input_.shape[:-1]))
 
     def backward(self):
+        """Calculate gradient from last forward pass."""
         return np.where(self._prev_target == 1, -1 / self._prev_input, 0)

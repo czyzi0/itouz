@@ -1,3 +1,5 @@
+"""Main script that performs model training and evaluation."""
+
 import argparse
 import pathlib
 
@@ -12,7 +14,8 @@ N_MELS = 80
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='zxcv')
+    """Function for parsing arguments for the script"""
+    parser = argparse.ArgumentParser(description='Train and evalute model')
 
     parser.add_argument(
         '--train', type=pathlib.Path, required=True,
@@ -22,15 +25,19 @@ def parse_args():
         help='path to directory with prepared testing data')
     parser.add_argument(
         '--rnn_size', type=int, default=128,
-        help='')
+        help='size of the RNN layer in the model')
+    parser.add_argument(
+        '--epochs', type=int, default=15,
+        help='number of epochs to train the model for')
     parser.add_argument(
         '--output', type=pathlib.Path, default=pathlib.Path('results.tsv'),
-        help='')
+        help='output file where classification results for test set will be saved')
 
     return parser.parse_args()
 
 
-def main(train_dir, test_dir, rnn_size, output_fp):
+def main(train_dir, test_dir, rnn_size, epochs, output_fp):
+    """Main function of the script that does the job."""
     np.random.seed(1234)
 
     my_print('Preparing data...', end='', flush=True)
@@ -61,7 +68,7 @@ def main(train_dir, test_dir, rnn_size, output_fp):
     my_print()
 
     my_print('Started training:')
-    model.train(train_x, train_y, val_x, val_y, lr=0.001, momentum=0.9, epochs=10)
+    model.train(train_x, train_y, val_x, val_y, lr=0.0001, momentum=0.8, epochs=epochs)
     my_print()
 
     my_print('Testing:', end='')
@@ -86,5 +93,5 @@ def main(train_dir, test_dir, rnn_size, output_fp):
 if __name__ == '__main__':
     init_logging('run_experiment.log.txt')
     args = parse_args()
-    main(args.train, args.test, args.rnn_size, args.output)
+    main(args.train, args.test, args.rnn_size, args.epochs, args.output)
     close_logging()

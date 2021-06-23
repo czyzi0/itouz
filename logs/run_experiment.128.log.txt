@@ -1,0 +1,45 @@
+Preparing data...DONE
+Training - Batches: 198 - Samples: 4158
+Validation - Batches: 22 - Samples: 462
+Testing - Batches: 1680 - Samples: 1680
+
+Preparing model...DONE
+----------------Model----------------
+layer                   # of params  
+-------------------------------------
+RNN(80, 128)            26752
+Linear(128, 61)         7869
+Softmax()               0
+CrossEntropyLoss()
+-------------------------------------
+TOTAL                   34621
+
+
+Started training:
+Epoch: 1 - Loss: 3.52875 - Accuracy: 0.2922 - ValLoss: 2.68663 - ValAccuracy: 0.3607 - Duration: 0m 10s
+Epoch: 2 - Loss: 2.59929 - Accuracy: 0.3502 - ValLoss: 2.42316 - ValAccuracy: 0.3981 - Duration: 0m 10s
+Epoch: 3 - Loss: 2.44512 - Accuracy: 0.3717 - ValLoss: 2.33188 - ValAccuracy: 0.4015 - Duration: 0m 10s
+Epoch: 4 - Loss: 2.38028 - Accuracy: 0.3793 - ValLoss: 2.24324 - ValAccuracy: 0.4193 - Duration: 0m 10s
+Epoch: 5 - Loss: 2.32014 - Accuracy: 0.3897 - ValLoss: 2.22829 - ValAccuracy: 0.4225 - Duration: 0m 10s
+Epoch: 6 - Loss: 2.26961 - Accuracy: 0.3986 - ValLoss: 2.22852 - ValAccuracy: 0.3984 - Duration: 0m 10s
+Epoch: 7 - Loss: 2.22479 - Accuracy: 0.4070 - ValLoss: 2.14163 - ValAccuracy: 0.4390 - Duration: 0m 10s
+Epoch: 8 - Loss: 2.19809 - Accuracy: 0.4114 - ValLoss: 2.10208 - ValAccuracy: 0.4447 - Duration: 0m 10s
+Epoch: 9 - Loss: 2.16520 - Accuracy: 0.4168 - ValLoss: 2.11441 - ValAccuracy: 0.4396 - Duration: 0m 10s
+Epoch: 10 - Loss: 2.16586 - Accuracy: 0.4172 - ValLoss: 2.13193 - ValAccuracy: 0.4173 - Duration: 0m 10s
+Epoch: 11 - Loss: 2.13429 - Accuracy: 0.4227 - ValLoss: 2.04683 - ValAccuracy: 0.4580 - Duration: 0m 10s
+Epoch: 12 - Loss: 2.10653 - Accuracy: 0.4283 - ValLoss: 2.05640 - ValAccuracy: 0.4538 - Duration: 0m 10s
+Epoch: 13 - Loss: 2.21541 - Accuracy: 0.4088 - ValLoss: 2.07400 - ValAccuracy: 0.4508 - Duration: 0m 10s
+Epoch: 14 - Loss: 2.10873 - Accuracy: 0.4300 - ValLoss: 2.07688 - ValAccuracy: 0.4478 - Duration: 0m 10s
+Epoch: 15 - Loss: 2.07746 - Accuracy: 0.4359 - ValLoss: 2.00175 - ValAccuracy: 0.4662 - Duration: 0m 10s
+Epoch: 16 - Loss: 2.06346 - Accuracy: 0.4384 - ValLoss: 1.99850 - ValAccuracy: 0.4712 - Duration: 0m 10s
+Epoch: 17 - Loss: 2.15660 - Accuracy: 0.4229 - ValLoss: 2.05501 - ValAccuracy: 0.4565 - Duration: 0m 10s
+Epoch: 18 - Loss: 2.11343 - Accuracy: 0.4282 - ValLoss: 2.03513 - ValAccuracy: 0.4578 - Duration: 0m 10s
+Epoch: 19 - Loss: 2.07205 - Accuracy: 0.4378 - ValLoss: 2.00129 - ValAccuracy: 0.4664 - Duration: 0m 10s
+Epoch: 20 - Loss: 2.15862 - Accuracy: 0.4201 - ValLoss: 2.05405 - ValAccuracy: 0.4567 - Duration: 0m 10s
+Epoch: 21 - Loss: 2.07853 - Accuracy: 0.4351 - ValLoss: 2.00826 - ValAccuracy: 0.4621 - Duration: 0m 10s
+Epoch: 22 - Loss: 2.04596 - Accuracy: 0.4421 - ValLoss: 2.06709 - ValAccuracy: 0.4564 - Duration: 0m 10s
+Epoch: 23 - Loss: 2.03333 - Accuracy: 0.4448 - ValLoss: 1.97657 - ValAccuracy: 0.4703 - Duration: 0m 10s
+Epoch: 24 - Loss: 2.00977 - Accuracy: 0.4500 - ValLoss: 1.95691 - ValAccuracy: 0.4778 - Duration: 0m 10s
+Epoch: 25 - Loss: 2.00792 - Accuracy: 0.4504 - ValLoss: 1.94106 - ValAccuracy: 0.4793 - Duration: 0m 10s
+
+Testing: - Accuracy: 0.4422
