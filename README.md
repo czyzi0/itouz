@@ -42,7 +42,12 @@ python run_experiment.py --train data/train/ --test data/test/ --rnn_size 128 --
 ## Rozkład plików
 
 `auxiliary/` - dodatkowe pliki, takie jak rysunki załączone do raportu, czy przykładowe wyniki zbioru testowego.
+
 `logs/` - wymagane pliki-logi z uruchomienia programu; załączone zostały pliki logi z każdego raportowanego treningu oraz z ekstrakcji cech.
+
 `*.py` - pliki źródłowe projektu.
+
 `README.md` - ten plik.
+
 `report.pdf` - raport końcowy z projektu.
+
